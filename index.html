@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>1000 Canales Sin Publicidad</title>
+  <title>1000 Canales DaddyLiveHD - Funcionando</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body{font-family:Arial;margin:0;background:#f4f4f4;display:flex;flex-direction:column;min-height:100vh}
@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-  <div class="header"><h1>1000 Canales Sin Publicidad</h1></div>
+  <div class="header"><h1>1000 Canales Funcionando</h1></div>
 
   <div class="container">
     <div class="video-container">
@@ -39,7 +39,7 @@
   </div>
 
   <script>
-    const backendURL = 'https://mydad1.vercel.app/api/stream'; // Cambiar después
+    const backendURL = 'https://tu-proyecto.vercel.app/api/stream'; // Cambia por tu URL
     const channelNames = Array.from({length:1000},(_,i)=>`Canal ${i+1}`);
     let currentChannel = 1;
     const perPage = 50;
@@ -62,7 +62,6 @@
       if(start>1000)return;
       loadChannels(start,end);
       currentChannel=end+1;
-      if(currentChannel>1000)document.getElementById('loadMore').style.display='none';
     }
     function loadVideo(num){
       const url=`${backendURL}/${num}`;
