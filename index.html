@@ -12,10 +12,6 @@
     .channels-container{flex:1;padding:20px;background:#fff;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);overflow-y:auto;max-height:calc(100vh - 100px)}
     .button{display:block;margin:8px 0;padding:10px;background:#007BFF;color:#fff;border-radius:5px;text-align:center;text-decoration:none}
     .button:hover{background:#0056b3}
-    .channel-name{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:5px 10px;border-radius:4px;display:none}
-    .search-container input{width:100%;padding:8px;font-size:16px}
-    .channel-controls{margin-top:10px;display:flex;gap:10px}
-    @media(max-width:768px){.container{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -28,8 +24,8 @@
         Tu navegador no soporta vídeo HLS.
       </video>
       <div style="display:flex;gap:10px;margin-top:10px">
-        <button onclick="prevChannel()">Canal Anterior</button>
-        <button onclick="nextChannel()">Canal Siguiente</button>
+        <button onclick="prevChannel()">Anterior</button>
+        <button onclick="nextChannel()">Siguiente</button>
       </div>
     </div>
 
@@ -43,7 +39,7 @@
   </div>
 
   <script>
-    const backendURL = 'https://tu-backend.vercel.app/api/stream'; // Cambiar después
+    const backendURL = 'https://TU_PROYECTO.vercel.app/api/stream'; // Cambiar después
     const channelNames = Array.from({length:1000},(_,i)=>`Canal ${i+1}`);
     let currentChannel = 1;
     const perPage = 50;
