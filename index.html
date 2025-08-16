@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>XUPER-CHANNELS v3</title>
+  <title>XUPER-CHANNELS v4 - M3U8 Directo</title>
   <style>
     :root{--accent:#007BFF;--bg:#f4f4f4;--surface:#fff;--text:#222}
     *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
@@ -30,7 +30,7 @@
 </head>
 <body>
   <header>
-    <h1><img src="https://i.postimg.cc/0QKq131f/logo8-2-222011.png" class="logo" alt="logo"/> XUPER-CHANNELS v3</h1>
+    <h1><img src="https://i.postimg.cc/0QKq131f/logo8-2-222011.png" class="logo" alt="logo"/> XUPER-CHANNELS v4</h1>
   </header>
 
   <div class="wrap">
@@ -54,37 +54,40 @@
   <footer class="footer">© Xuperlist 2025</footer>
 
   <script>
-    // 1. Servidor propio que lee la web original
-    const PROXY = 'cors.php?url='; 
-    const TARGET = 'https://thedaddy.top/';
-
+    const M3U_URL = 'https://thedaddy.top/lista.m3u8';   // <-- cambia si la URL es otra
     let channels = [];
     let current = 0;
 
+    // Descarga y parsea la lista M3U8
     async function loadChannels() {
       try {
-        // 2. Descargamos el HTML de thedaddy.top a través de nuestro proxy
-        const html = await fetch(PROXY + encodeURIComponent(TARGET)).then(r => r.text());
-
-        // 3. Parseamos los enlaces .m3u8 que estén dentro del HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        channels = [...doc.querySelectorAll('a[href*=".m3u8"], source[src*=".m3u8"]')]
-          .map(node => ({
-            name: node.textContent.trim() || node.getAttribute('title') || 'Canal',
-            url: (node.href || node.src).startsWith('http') 
-                 ? (node.href || node.src) 
-                 : new URL(node.href || node.src, TARGET).href
-          }))
-          .filter(ch => ch.url);
-
-        if (!channels.length) throw 'No se encontraron streams';
+        const text = await fetch(M3U_URL).then(r => {
+          if (!r.ok) throw 'No se pudo descargar la lista';
+          return r.text();
+        });
+        channels = parseM3U(text);
+        if (!channels.length) throw 'Lista vacía';
         renderList();
         playChannel(0);
       } catch (e) {
         document.getElementById('channelList').textContent = 'Error: ' + e;
       }
+    }
+
+    // Parser M3U muy simple: líneas #EXTINF + URL
+    function parseM3U(txt) {
+      const lines = txt.split(/\r?\n/);
+      const list = [];
+      let name = '';
+      for (const line of lines) {
+        if (line.startsWith('#EXTINF:')) {
+          const comma = line.lastIndexOf(',');
+          name = line.slice(comma + 1).trim();
+        } else if (line.trim() && !line.startsWith('#')) {
+          list.push({ name, url: line.trim() });
+        }
+      }
+      return list;
     }
 
     function renderList(filter = '') {
