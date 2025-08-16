@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>XUPER-CHANNELS v5 (CORS-free)</title>
+  <title>XUPER-CHANNELS v6 – stream-{id}.php extractor</title>
   <style>
     :root{--accent:#007BFF;--bg:#f4f4f4;--surface:#fff;--text:#222}
     *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
     body{margin:0;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;color:var(--text)}
     header{background:#111;color:#fff;padding:12px 20px;text-align:center}
-    header h1{margin:4px 0}
+    header h1{margin:4px 0;font-size:1.4rem}
     .logo{height:34px;vertical-align:middle;margin-right:10px}
     .wrap{display:flex;flex:1;margin:15px;gap:15px}
     .player,.sidebar{background:var(--surface);border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);padding:15px}
-    .player{flex:2}
+    .player{flex:2;display:flex;flex-direction:column}
     .sidebar{flex:1;display:flex;flex-direction:column;max-height:calc(100vh - 90px)}
     #videoPlayer{width:100%;border-radius:6px}
     .controls{display:flex;gap:10px;margin-top:10px}
     .controls button{flex:1;padding:8px;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer;font-size:.9rem}
+    .controls button:disabled{background:#aaa;cursor:not-allowed}
     .search{margin-bottom:10px}
     .search input{width:100%;padding:8px;font-size:1rem;border:1px solid #ccc;border-radius:4px}
     #channelList{overflow-y:auto;flex:1}
@@ -29,7 +30,7 @@
 </head>
 <body>
   <header>
-    <h1><img src="https://i.postimg.cc/0QKq131f/logo8-2-222011.png" class="logo" alt="logo"/> XUPER-CHANNELS v5</h1>
+    <h1><img src="https://i.postimg.cc/0QKq131f/logo8-2-222011.png" class="logo" alt="logo"/> XUPER-CHANNELS v6</h1>
   </header>
 
   <div class="wrap">
@@ -53,43 +54,25 @@
   <footer class="footer">© Xuperlist 2025</footer>
 
   <script>
-    // 1. Usamos un proxy público 100 % gratuito y con CORS habilitado
-    const PROXY   = 'https://api.allorigins.win/raw?url=';
-    const M3U_URL = 'https://thedaddy.top/lista.m3u';   // <- si no existe, cámbiala por la que veas en F12
+    // CONFIG
+    const BACKEND = 'getStream.php'; // mismo directorio que index.html
+    const TOTAL   = 200;             // canales 1..200 (ajusta a tu gusto)
 
     let channels = [];
     let current  = 0;
 
-    async function loadChannels() {
-      try {
-        const raw = await fetch(PROXY + encodeURIComponent(M3U_URL)).then(r => {
-          if (!r.ok) throw 'No se pudo obtener la lista';
-          return r.text();
-        });
-        channels = parseM3U(raw);
-        if (!channels.length) throw 'Lista vacía';
-        renderList();
-        playChannel(0);
-      } catch (e) {
-        document.getElementById('channelList').textContent = 'Error: ' + e;
-      }
+    // Generar la lista de canales
+    function loadChannels() {
+      channels = Array.from({ length: TOTAL }, (_, i) => ({
+        id:   i + 1,
+        name: `Canal ${i + 1}`,
+        url:  `${BACKEND}?id=${i + 1}`
+      }));
+      renderList();
+      playChannel(0);
     }
 
-    function parseM3U(txt) {
-      const lines = txt.split(/\r?\n/);
-      const list = [];
-      let name = '';
-      for (const line of lines) {
-        if (line.startsWith('#EXTINF:')) {
-          const comma = line.lastIndexOf(',');
-          name = line.slice(comma + 1).trim();
-        } else if (line.trim() && !line.startsWith('#')) {
-          list.push({ name, url: line.trim() });
-        }
-      }
-      return list;
-    }
-
+    // Renderizar botones
     function renderList(filter = '') {
       const list = document.getElementById('channelList');
       list.innerHTML = '';
@@ -105,21 +88,31 @@
         });
     }
 
-    function playChannel(idx) {
+    // Reproducir canal
+    async function playChannel(idx) {
       if (idx < 0 || idx >= channels.length) return;
       current = idx;
-      const vp = document.getElementById('videoPlayer');
-      vp.src = channels[idx].url;
+      const vp   = document.getElementById('videoPlayer');
+      const resp = await fetch(channels[idx].url);
+      const realUrl = await resp.text();
+      if (!realUrl) {
+        alert('No se pudo obtener el stream para este canal.');
+        return;
+      }
+      vp.src = realUrl;
       vp.play();
+
+      // marcar activo
       document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
-      const active = document.getElementById(`btn-${idx}`);
-      if (active) active.classList.add('active');
+      document.getElementById(`btn-${idx}`)?.classList.add('active');
     }
 
+    // Controles
     document.getElementById('nextBtn').addEventListener('click', () => playChannel(current + 1));
     document.getElementById('prevBtn').addEventListener('click', () => playChannel(current - 1));
     document.getElementById('filterInput').addEventListener('input', e => renderList(e.target.value));
 
+    // Inicio
     loadChannels();
   </script>
 </body>
